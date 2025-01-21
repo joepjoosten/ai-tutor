@@ -57,6 +57,13 @@ useEffect(() => {
     }
 
 
+    const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
+    const [feedback, setFeedback] = useState<{ [key: string]: { correct: boolean, hint: string } }>({});
+
+    const handleAnswerChange = (id: string, value: string) => {
+        setUserAnswers(prev => ({ ...prev, [id]: value }));
+    };
+
     async function checkAnswers() {
         if (!apiKey) {
             alert('Please enter your OpenAI API key.');
@@ -66,35 +73,28 @@ useEffect(() => {
         try {
             let correct = 0;
             let total = 0;
+            const newFeedback: { [key: string]: { correct: boolean, hint: string } } = {};
 
             if (examData) {
                 for (const section of examData.sections) {
                     for (const questionObj of section.questions) {
                         total++;
-                        const inputElement = document.getElementById(questionObj.id) as HTMLTextAreaElement;
-                        const userAnswer = inputElement.value.trim().toLowerCase();
+                        const userAnswer = (userAnswers[questionObj.id] || '').trim().toLowerCase();
                         const correctAnswer = questionObj.answer.toLowerCase();
-                        const feedbackElement = document.getElementById('feedback' + questionObj.id.replace('q', '')) as HTMLDivElement;
-                        const questionText = inputElement.getAttribute('data-question') || '';
+                        const questionText = questionObj.dataQuestion || '';
 
                         if (userAnswer === correctAnswer) {
-                            feedbackElement.textContent = '✔ Correct!';
-                            feedbackElement.classList.remove('incorrect');
-                            feedbackElement.classList.add('correct');
+                            newFeedback[questionObj.id] = { correct: true, hint: '' };
                             correct++;
                         } else {
-                            feedbackElement.textContent = 'Generating hint...';
-                            feedbackElement.classList.remove('correct');
-                            feedbackElement.classList.add('incorrect');
-
-                            // Generate hint using OpenAI API
                             const hint = await generateHint(questionText, userAnswer);
-                            feedbackElement.textContent = '✖ Incorrect. Hint: ' + hint;
+                            newFeedback[questionObj.id] = { correct: false, hint: hint };
                         }
                     }
                 }
             }
 
+            setFeedback(newFeedback);
             setCorrectCount(correct);
             setTotalQuestions(total);
             alert('You got ' + correct + ' out of ' + total + ' correct.');
@@ -124,12 +124,23 @@ useEffect(() => {
                         {section.questions.map((questionObj) => (
                             <div key={questionObj.id} className="mb-7.5">
                                 <label htmlFor={questionObj.id} className="block font-bold mb-2.5">{questionObj.label}</label>
-                                <textarea className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                <textarea
+                                    className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     id={questionObj.id}
                                     name={questionObj.id}
                                     data-question={questionObj.dataQuestion}
+                                    value={userAnswers[questionObj.id] || ''}
+                                    onChange={(e) => handleAnswerChange(questionObj.id, e.target.value)}
                                 />
-                                <div className="mt-2.5 text-sm" id={'feedback' + questionObj.id.replace('q', '')}></div>
+                                <div className="mt-2.5 text-sm" id={'feedback' + questionObj.id.replace('q', '')}>
+                                    {feedback[questionObj.id] && (
+                                        feedback[questionObj.id].correct ? (
+                                            <span className="text-green-500">✔ Correct!</span>
+                                        ) : (
+                                            <span className="text-red-500">✖ Incorrect. Hint: {feedback[questionObj.id].hint}</span>
+                                        )
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
