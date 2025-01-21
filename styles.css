@@ -1,0 +1,60 @@
+/* Include this in your CSS file or within <style> tags in your HTML */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    line-height: 1.6;
+}
+
+h1, h2 {
+    color: #333;
+}
+
+.section {
+    margin-bottom: 40px;
+}
+
+.question {
+    margin-bottom: 30px;
+}
+
+.question label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.feedback {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.correct {
+    color: green;
+}
+
+.incorrect {
+    color: red;
+}
+
+#checkAnswers {
+    padding: 12px 24px;
+    font-size: 18px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+@media screen and (min-width: 768px) {
+    .question textarea {
+        min-height: 80px;
+    }
+}

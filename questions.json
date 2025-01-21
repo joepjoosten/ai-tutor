@@ -1,0 +1,38 @@
+{
+    "sections": [
+      {
+        "title": "Part 1: Vocabulary (20 points)",
+        "instructions": "Translate the following English words into Dutch.",
+        "questions": [
+          {
+            "id": "q1",
+            "label": "1. election",
+            "type": "text",
+            "dataQuestion": "Translate 'election' into Dutch.",
+            "answer": "verkiezing"
+          },
+          {
+            "id": "q2",
+            "label": "2. population",
+            "type": "text",
+            "dataQuestion": "Translate 'population' into Dutch.",
+            "answer": "bevolking"
+          }
+        ]
+      },
+      {
+        "title": "Part 2: Fill in the Blanks (15 points)",
+        "instructions": "Complete the sentences with the correct English words from the box below.",
+        "additionalInfo": "[ Commonwealth of Nations | accept | culture | French | population ]",
+        "questions": [
+          {
+            "id": "q11",
+            "label": "1. She's from France, so she speaks ________.",
+            "type": "text",
+            "dataQuestion": "Complete: She's from France, so she speaks ________.",
+            "answer": "French"
+          }
+        ]
+      }
+    ]
+  }
