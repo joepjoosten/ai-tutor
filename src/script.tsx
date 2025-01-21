@@ -1,8 +1,5 @@
-// script.tsx
-
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
-
+import ReactDOM from 'react-dom/client';
 import { ExamData, initExam } from './data';
 
 function ExamPractice() {
@@ -11,9 +8,13 @@ function ExamPractice() {
     const [correctCount, setCorrectCount] = useState(0);
     const [totalQuestions, setTotalQuestions] = useState(0);
 
-    useEffect(() => {
-        initExam();
-    }, []);
+useEffect(() => {
+    initExam().then(data => {
+        if (data) {
+            setExamData(data);
+        }
+    });
+}, []);
 
     useEffect(() => {
         localStorage.setItem('apiKey', apiKey);
@@ -49,8 +50,8 @@ function ExamPractice() {
             const data = await response.json();
             const hint = data.choices[0].message.content.trim();
             return hint;
-        } catch (error) {
-            console.error('Error generating hint:', error.message);
+        } catch (error: any) {
+            console.error('Error generating hint:', error?.message || error);
             return 'Error generating hint.';
         }
     }
@@ -97,7 +98,7 @@ function ExamPractice() {
             setCorrectCount(correct);
             setTotalQuestions(total);
             alert('You got ' + correct + ' out of ' + total + ' correct.');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error checking answers:', error);
             alert('An error occurred while checking the answers.');
         }
@@ -139,4 +140,6 @@ function ExamPractice() {
     );
 }
 
-ReactDOM.render(<ExamPractice />, document.getElementById('root'));
+const container = document.getElementById('root') as HTMLElement;
+const root = ReactDOM.createRoot(container);
+root.render(<ExamPractice />);

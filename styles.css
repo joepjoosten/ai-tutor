@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Include this in your CSS file or within <style> tags in your HTML */
 
 body {
