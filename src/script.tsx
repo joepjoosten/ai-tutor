@@ -112,30 +112,30 @@ useEffect(() => {
                 placeholder="Enter your OpenAI API Key"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                style={{ width: '100%', padding: '8px', marginBottom: '20px' }}
+                className="w-full p-2 mb-5"
             />
             <h1>Exam Practice</h1>
             <div id="exam-content">
                 {examData && examData.sections.map((section) => (
-                    <div key={section.title} className="section">
+                    <div key={section.title} className="mb-10">
                         <h2>{section.title}</h2>
                         {section.instructions && <p><strong>{section.instructions}</strong></p>}
                         {section.additionalInfo && <p>{section.additionalInfo}</p>}
                         {section.questions.map((questionObj) => (
-                            <div key={questionObj.id} className="question">
-                                <label htmlFor={questionObj.id}>{questionObj.label}</label>
-                                <textarea
+                            <div key={questionObj.id} className="mb-7.5">
+                                <label htmlFor={questionObj.id} className="block font-bold mb-2.5">{questionObj.label}</label>
+                                <textarea className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     id={questionObj.id}
                                     name={questionObj.id}
                                     data-question={questionObj.dataQuestion}
                                 />
-                                <div className="feedback" id={'feedback' + questionObj.id.replace('q', '')}></div>
+                                <div className="mt-2.5 text-sm" id={'feedback' + questionObj.id.replace('q', '')}></div>
                             </div>
                         ))}
                     </div>
                 ))}
             </div>
-            <button id="checkAnswers" onClick={checkAnswers}>Check Answers</button>
+            <button id="checkAnswers" onClick={checkAnswers} className="py-3 px-6 text-lg mt-5 cursor-pointer">Check Answers</button>
         </div>
     );
 }
