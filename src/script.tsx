@@ -12,6 +12,10 @@ function ExamPractice() {
         localStorage.setItem('apiKey', apiKey);
     }, [apiKey]);
 
+    useEffect(() => {
+        initExam().then(data => setExamData(data));
+    }, []);
+
     async function generateHint(question: string, userAnswer: string): Promise<string> {
         const messages = [
             { role: 'system', content: 'You are a helpful assistant for language learning. Provide a hint to help correct the user\'s answer.' },
