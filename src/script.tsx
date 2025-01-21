@@ -4,17 +4,9 @@ import { ExamData, initExam } from './data';
 
 function ExamPractice() {
     const [apiKey, setApiKey] = useState(localStorage.getItem('apiKey') || '');
-    const [examData, setExamData] = useState(null as ExamData | null);
-    const [correctCount, setCorrectCount] = useState(0);
-    const [totalQuestions, setTotalQuestions] = useState(0);
-
-useEffect(() => {
-    initExam().then(data => {
-        if (data) {
-            setExamData(data);
-        }
-    });
-}, []);
+    const [examData, setExamData] = useState<ExamData | null>(null);
+    const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
+    const [feedback, setFeedback] = useState<{ [key: string]: { correct: boolean, hint: string, loading: boolean } }>({});
 
     useEffect(() => {
         localStorage.setItem('apiKey', apiKey);
@@ -57,50 +49,36 @@ useEffect(() => {
     }
 
 
-    const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
-    const [feedback, setFeedback] = useState<{ [key: string]: { correct: boolean, hint: string } }>({});
-
     const handleAnswerChange = (id: string, value: string) => {
         setUserAnswers(prev => ({ ...prev, [id]: value }));
     };
 
-    async function checkAnswers() {
+    async function checkAnswer(questionObj: { id: string; answer: string; dataQuestion: string }) {
+        const newFeedback = { ...feedback, [questionObj.id]: { ...feedback[questionObj.id], loading: true } };
+        setFeedback(newFeedback);
+
         if (!apiKey) {
-            alert('Please enter your OpenAI API key.');
+            console.error('Please enter your OpenAI API key.');
             return;
         }
 
         try {
-            let correct = 0;
-            let total = 0;
-            const newFeedback: { [key: string]: { correct: boolean, hint: string } } = {};
+            const userAnswer = (userAnswers[questionObj.id] || '').trim().toLowerCase();
+            const correctAnswer = questionObj.answer.toLowerCase();
+            const questionText = questionObj.dataQuestion || '';
 
-            if (examData) {
-                for (const section of examData.sections) {
-                    for (const questionObj of section.questions) {
-                        total++;
-                        const userAnswer = (userAnswers[questionObj.id] || '').trim().toLowerCase();
-                        const correctAnswer = questionObj.answer.toLowerCase();
-                        const questionText = questionObj.dataQuestion || '';
-
-                        if (userAnswer === correctAnswer) {
-                            newFeedback[questionObj.id] = { correct: true, hint: '' };
-                            correct++;
-                        } else {
-                            const hint = await generateHint(questionText, userAnswer);
-                            newFeedback[questionObj.id] = { correct: false, hint: hint };
-                        }
-                    }
-                }
+            if (userAnswer === correctAnswer) {
+                newFeedback[questionObj.id] = { correct: true, hint: '', loading: false };
+            } else {
+                const hint = await generateHint(questionText, userAnswer);
+                newFeedback[questionObj.id] = { correct: false, hint: hint, loading: false };
             }
 
             setFeedback(newFeedback);
-            setCorrectCount(correct);
-            setTotalQuestions(total);
-            alert('You got ' + correct + ' out of ' + total + ' correct.');
         } catch (error: any) {
-            console.error('Error checking answers:', error);
-            alert('An error occurred while checking the answers.');
+            console.error('Error checking answer:', error);
+            newFeedback[questionObj.id].loading = false;
+            setFeedback(newFeedback);
         }
     }
 
@@ -124,15 +102,31 @@ useEffect(() => {
                         {section.questions.map((questionObj) => (
                             <div key={questionObj.id} className="mb-7.5">
                                 <label htmlFor={questionObj.id} className="block font-bold mb-2.5">{questionObj.label}</label>
-                                <textarea
-                                    className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    id={questionObj.id}
-                                    name={questionObj.id}
-                                    data-question={questionObj.dataQuestion}
-                                    value={userAnswers[questionObj.id] || ''}
-                                    onChange={(e) => handleAnswerChange(questionObj.id, e.target.value)}
-                                />
-                                <div className="mt-2.5 text-sm" id={'feedback' + questionObj.id.replace('q', '')}>
+                                <div className="flex items-start">
+                                    <button
+                                        onClick={() => checkAnswer(questionObj)}
+                                        className="py-1 px-3 text-sm mr-2 cursor-pointer text-center border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        disabled={feedback[questionObj.id]?.loading}
+                                    >
+                                        {feedback[questionObj.id]?.loading ? (
+                                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8z"></path>
+                                            </svg>
+                                        ) : (
+                                            'Check'
+                                        )}
+                                    </button>
+                                    <textarea
+                                        className="p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        id={questionObj.id}
+                                        name={questionObj.id}
+                                        data-question={questionObj.dataQuestion}
+                                        value={userAnswers[questionObj.id] || ''}
+                                        onChange={(e) => handleAnswerChange(questionObj.id, e.target.value)}
+                                    />
+                                </div>
+                                <div className="mt-2.5 text-sm">
                                     {feedback[questionObj.id] && (
                                         feedback[questionObj.id].correct ? (
                                             <span className="text-green-500">✔ Correct!</span>
@@ -146,7 +140,6 @@ useEffect(() => {
                     </div>
                 ))}
             </div>
-            <button id="checkAnswers" onClick={checkAnswers} className="py-3 px-6 text-lg mt-5 cursor-pointer">Check Answers</button>
         </div>
     );
 }
